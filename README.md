@@ -18,7 +18,8 @@ https://dev.px4.io/en/setup/dev_env_linux_ubuntu.html
   - `sudo ./install_geographiclib_datasets.sh`
   - `rm -rf install_geographiclib_datasets.sh`
 - Install Python libraries
-  - `sudo apt-get install python-rosinstall ython-wstool python-rosinstall-generator python-catkin-tools pymavlink -y`
+  - `sudo apt-get install python-rosinstall ython-wstool python-rosinstall-generator python-catkin-tools -y`
+  - `sudo pip install pymavlink`
 
 #### Ubuntu 18.04
 
@@ -29,7 +30,8 @@ https://dev.px4.io/en/setup/dev_env_linux_ubuntu.html
   - `sudo ./install_geographiclib_datasets.sh`
   - `rm -rf install_geographiclib_datasets.sh`
 - Install Python libraries
-  - `sudo apt-get install python-rosinstall ython-wstool python-rosinstall-generator python-catkin-tools pymavlink -y`
+  - `sudo apt-get install python-rosinstall ython-wstool python-rosinstall-generator python-catkin-tools -y`
+  - `sudo pip install pymavlink`
   
 ## Create catkin workspace
 
