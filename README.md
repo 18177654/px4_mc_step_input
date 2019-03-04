@@ -16,6 +16,7 @@ https://dev.px4.io/en/setup/dev_env_linux_ubuntu.html
   - `sudo apt-get install ros-kinetic-mavros ros-kinetic-mavros-extras`
   - `wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh`
   - `sudo ./install_geographiclib_datasets.sh`
+  - `chmod +x install_geographiclib_datasets.sh`
   - `rm -rf install_geographiclib_datasets.sh`
 - Install Python libraries
   - `sudo apt-get install python-rosinstall python-wstool python-rosinstall-generator python-catkin-tools -y`
@@ -28,6 +29,7 @@ https://dev.px4.io/en/setup/dev_env_linux_ubuntu.html
   - `sudo apt-get install ros-melodic-mavros ros-melodic-mavros-extras`
   - `wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh`
   - `sudo ./install_geographiclib_datasets.sh`
+  - `chmod +x install_geographiclib_datasets.sh`
   - `rm -rf install_geographiclib_datasets.sh`
 - Install Python libraries
   - `sudo apt-get install python-rosinstall python-wstool python-rosinstall-generator python-catkin-tools -y`
