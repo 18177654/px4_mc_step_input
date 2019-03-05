@@ -61,23 +61,23 @@ class FlightModes:
 # Flight parameters class
 # Flight parameters are activated using ROS services
 class FlightParams:
+    def __init__(self):
+        # pull all parameters
+        rospy.wait_for_service('mavros/param/pull')
+        pulled = False
+        while not pulled:
+            try:
+                paramService = rospy.ServiceProxy('mavros/param/pull', mavros_msgs.srv.ParamPull)
+                parameters_recv = paramService(True)
+                pulled = parameters_recv.success
+            except rospy.ServiceException, e:
+                print "service param_pull call failed: %s. Could not retrieve parameter list."%e
+
     def getTakeoffHeight(self):
-        rospy.wait_for_service('mavros/param/get')
-        try:
-            paramService = rospy.ServiceProxy('mavros/param/get', mavros_msgs.srv.ParamGet)
-            height = paramService('MIS_TAKEOFF_ALT')
-            return height.value.real
-        except rospy.ServiceException, e:
-               print "service param_get call failed: %s. Could not retrieve parameter."%e
+        return rospy.get_param('mavros/param/MIS_TAKEOFF_ALT')
 
     def getHoverThrust(self):
-        rospy.wait_for_service('mavros/param/get')
-        try:
-            paramService = rospy.ServiceProxy('mavros/param/get', mavros_msgs.srv.ParamGet)
-            hover = paramService('MPC_THR_HOVER')
-            return hover.value.real
-        except rospy.ServiceException, e:
-               print "service param_get call failed: %s. Could not retrieve parameter."%e
+        return rospy.get_param('mavros/param/MPC_THR_HOVER')
 
 # Offboard controller for sending setpoints
 class Controller:
@@ -122,6 +122,7 @@ class Controller:
         params = FlightParams()
         self.takeoffHeight = params.getTakeoffHeight()
         self.hoverThrust = params.getHoverThrust()
+        print(self.hoverThrust)
 
         # Set initial yaw angle to unknown
         self.init_yaw = None
@@ -302,19 +303,23 @@ def run(argv):
         rate.sleep()
     print("Reached takeoff height")
 
-    # ROS main loop
-    start = time.time()
-    while not ((time.time() - start >= duration) or rospy.is_shutdown()):
-        cnt.updateSp(step_type, value)
-        publish_setpoint(cnt, step_type, sp_pos_pub, sp_att_pub)
-        rate.sleep()
-
-    # Time exceeded - step down to 0. Well, really close to 0...
+    # Start and end the step at 0. Well, really close to 0...
     final_val = 1e-6
     if ALL_STEP_TYPES.index(step_type) == INDEX_Z:
         final_val = cnt.takeoffHeight
     elif ALL_STEP_TYPES.index(step_type) == INDEX_YAW:
         final_val = cnt.init_yaw
+
+    # ROS main loop - first set value to zero before stepping
+    zero_time = 3
+    start = time.time()
+    while not ((time.time() - start >= duration + zero_time) or rospy.is_shutdown()):
+        if time.time() - start <= zero_time:
+            cnt.updateSp(step_type, final_val)
+        else:
+            cnt.updateSp(step_type, value)
+        publish_setpoint(cnt, step_type, sp_pos_pub, sp_att_pub)
+        rate.sleep()
 
     # Step down for the same duration
     start = time.time()
