@@ -122,7 +122,6 @@ class Controller:
         params = FlightParams()
         self.takeoffHeight = params.getTakeoffHeight()
         self.hoverThrust = params.getHoverThrust()
-        print(self.hoverThrust)
 
         # Set initial yaw angle to unknown
         self.init_yaw = None
