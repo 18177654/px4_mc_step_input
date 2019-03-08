@@ -18,21 +18,21 @@ import argparse
 import time, sys, math
 
 # Constants
-ALL_STEP_TYPES = ["pitch_rate", "roll_rate", "yaw_rate", "pitch", "roll", "yaw", "vx", "vy", "vz", "x", "y", "z"]
+ALL_STEP_TYPES = ["pitch_rate", "roll_rate", "yaw_rate", "pitch", "roll", "yaw", "vn", "ve", "vd", "x", "y", "z"]
 INDEX_PITCH_RATE = 0
 INDEX_ROLL_RATE = 1
 INDEX_YAW_RATE = 2
 INDEX_PITCH = 3
 INDEX_ROLL = 4
 INDEX_YAW = 5
-INDEX_VX = 6
-INDEX_VY = 7
-INDEX_VZ = 8
+INDEX_VN = 6
+INDEX_VE = 7
+INDEX_VD = 8
 INDEX_X = 9
 INDEX_Y = 10
 INDEX_Z = 11
 INDICES_ATTITUDE = [INDEX_PITCH_RATE, INDEX_ROLL_RATE, INDEX_YAW_RATE, INDEX_PITCH, INDEX_ROLL, INDEX_YAW]
-INDICES_POSITION = [INDEX_VX, INDEX_VY, INDEX_VZ, INDEX_X, INDEX_Y, INDEX_Z]
+INDICES_POSITION = [INDEX_VN, INDEX_VE, INDEX_VD, INDEX_X, INDEX_Y, INDEX_Z]
 
 # Global variables
 
@@ -149,11 +149,11 @@ class Controller:
         self.att_sp.thrust = self.hoverThrust
 
         # Set step value
-        if ALL_STEP_TYPES.index(step_type) == INDEX_VX:
-            self.pos_sp.velocity.x = step_val
-        elif ALL_STEP_TYPES.index(step_type) == INDEX_VY:
+        if ALL_STEP_TYPES.index(step_type) == INDEX_VN:
             self.pos_sp.velocity.y = step_val
-        elif ALL_STEP_TYPES.index(step_type) == INDEX_VZ:
+        elif ALL_STEP_TYPES.index(step_type) == INDEX_VE:
+            self.pos_sp.velocity.x = step_val
+        elif ALL_STEP_TYPES.index(step_type) == INDEX_VD:
             self.pos_sp.velocity.z = step_val
         elif ALL_STEP_TYPES.index(step_type) == INDEX_X:
             self.pos_sp.position.x = step_val
@@ -175,7 +175,7 @@ class Controller:
             self.att_sp.orientation = Quaternion(*quaternion_from_euler(0.0, 0.0, math.radians(step_val)))
 
         # Set mask
-        if ALL_STEP_TYPES.index(step_type) in [INDEX_VX, INDEX_VY, INDEX_VZ]:
+        if ALL_STEP_TYPES.index(step_type) in [INDEX_VN, INDEX_VE, INDEX_VD]:
             self.pos_sp.type_mask = int('110111000111', 2)
         elif ALL_STEP_TYPES.index(step_type) in [INDEX_X, INDEX_Y, INDEX_Z]:
             self.pos_sp.type_mask = int('110111111000', 2) 
@@ -209,14 +209,14 @@ class Controller:
     def velCb(self, msg):
         self.local_vel.x = msg.twist.linear.x
         self.local_vel.y = msg.twist.linear.y
-        self.local_vel.z = msg.twist.linear.z
+        self.local_vel.z = 0#msg.twist.linear.z
 
         self.ang_rate.x = msg.twist.angular.x
         self.ang_rate.y = msg.twist.angular.y
         self.ang_rate.z = msg.twist.angular.z
 
 def publish_setpoint(cnt, step_type, pub_pos, pub_att):
-    if ALL_STEP_TYPES.index(step_type) in [INDEX_VX, INDEX_VY, INDEX_VZ, INDEX_X, INDEX_Y, INDEX_Z]:
+    if ALL_STEP_TYPES.index(step_type) in [INDEX_VN, INDEX_VE, INDEX_VD, INDEX_X, INDEX_Y, INDEX_Z]:
         pub_pos.publish(cnt.pos_sp)
     elif ALL_STEP_TYPES.index(step_type) in [INDEX_PITCH_RATE, INDEX_ROLL_RATE, INDEX_YAW_RATE, INDEX_PITCH, INDEX_ROLL, INDEX_YAW]:
         pub_att.publish(cnt.att_sp)
