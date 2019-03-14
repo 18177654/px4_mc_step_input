@@ -129,22 +129,22 @@ class Controller:
     # Update setpoint message
     def updateSp(self, step_type, step_val):
         # Set default values
-        self.pos_sp.position.x = self.local_pos.x
-        self.pos_sp.position.y = self.local_pos.y
-        self.pos_sp.position.z = self.local_pos.z
+        self.pos_sp.position.x = 0#self.local_pos.x
+        self.pos_sp.position.y = 0#self.local_pos.y
+        self.pos_sp.position.z = 0#self.local_pos.z
 
-        self.pos_sp.velocity.x = self.local_vel.x
-        self.pos_sp.velocity.y = self.local_vel.y
-        self.pos_sp.velocity.z = self.local_vel.z
+        self.pos_sp.velocity.x = 0#self.local_vel.x
+        self.pos_sp.velocity.y = 0#self.local_vel.y
+        self.pos_sp.velocity.z = 0#self.local_vel.z
 
-        self.att_sp.orientation.w = self.quat.w
-        self.att_sp.orientation.x = self.quat.x
-        self.att_sp.orientation.y = self.quat.y
-        self.att_sp.orientation.z = self.quat.z
+        self.att_sp.orientation.w = 1#self.quat.w
+        self.att_sp.orientation.x = 0#self.quat.x
+        self.att_sp.orientation.y = 0#self.quat.y
+        self.att_sp.orientation.z = 0#self.quat.z
 
-        self.att_sp.body_rate.x = self.ang_rate.x
-        self.att_sp.body_rate.y = self.ang_rate.y
-        self.att_sp.body_rate.z = self.ang_rate.z
+        self.att_sp.body_rate.x = 0#self.ang_rate.x
+        self.att_sp.body_rate.y = 0#self.ang_rate.y
+        self.att_sp.body_rate.z = 0#self.ang_rate.z
 
         self.att_sp.thrust = self.hoverThrust
 
@@ -154,7 +154,7 @@ class Controller:
         elif ALL_STEP_TYPES.index(step_type) == INDEX_VE:
             self.pos_sp.velocity.x = step_val
         elif ALL_STEP_TYPES.index(step_type) == INDEX_VD:
-            self.pos_sp.velocity.z = step_val
+            self.pos_sp.velocity.z = -step_val
         elif ALL_STEP_TYPES.index(step_type) == INDEX_X:
             self.pos_sp.position.x = step_val
         elif ALL_STEP_TYPES.index(step_type) == INDEX_Y:
@@ -172,7 +172,7 @@ class Controller:
         elif ALL_STEP_TYPES.index(step_type) == INDEX_PITCH:
             self.att_sp.orientation = Quaternion(*quaternion_from_euler(0.0, math.radians(step_val), math.radians(self.init_yaw)))
         elif ALL_STEP_TYPES.index(step_type) == INDEX_YAW:
-            self.att_sp.orientation = Quaternion(*quaternion_from_euler(0.0, 0.0, math.radians(step_val)))
+            self.att_sp.orientation = Quaternion(*quaternion_from_euler(0.0, 0.0, math.radians(90 + step_val)))
 
         # Set mask
         if ALL_STEP_TYPES.index(step_type) in [INDEX_VN, INDEX_VE, INDEX_VD]:
@@ -203,13 +203,13 @@ class Controller:
 
         # Set initial yaw angle
         if self.init_yaw is None:
-            self.init_yaw = math.degrees(euler_from_quaternion([self.quat.x, self.quat.y, self.quat.z, self.quat.w])[2])
+            self.init_yaw = -90 + math.degrees(euler_from_quaternion([self.quat.x, self.quat.y, self.quat.z, self.quat.w])[2])
 
     ## Drone linear velocity callback
     def velCb(self, msg):
         self.local_vel.x = msg.twist.linear.x
         self.local_vel.y = msg.twist.linear.y
-        self.local_vel.z = 0#msg.twist.linear.z
+        self.local_vel.z = msg.twist.linear.z
 
         self.ang_rate.x = msg.twist.angular.x
         self.ang_rate.y = msg.twist.angular.y
@@ -258,7 +258,7 @@ def run(argv):
     cnt = Controller()
 
     # ROS loop rate
-    rate = rospy.Rate(20.0)
+    rate = rospy.Rate(200.0)
 
     # Subscribe to drone state
     rospy.Subscriber('mavros/state', State, cnt.stateCb)
@@ -273,7 +273,7 @@ def run(argv):
     sp_pos_pub = rospy.Publisher('mavros/setpoint_raw/local', PositionTarget, queue_size=1)
     sp_att_pub = rospy.Publisher('mavros/setpoint_raw/attitude', AttitudeTarget, queue_size=1)
 
-    # Make sure the drone is armed
+    # Arm the drone
     print("Arming")
     while not (cnt.state.armed or rospy.is_shutdown()):
         modes.setArm()
@@ -293,6 +293,13 @@ def run(argv):
         modes.setOffboardMode()
         rate.sleep()
     print("OFFBOARD mode activated\n")
+
+    # Make sure the drone is armed
+    print("Arming")
+    while not (cnt.state.armed or rospy.is_shutdown()):
+        modes.setArm()
+        rate.sleep()
+    print("Armed\n")
 
     # Takeoff
     print("Taking off")
