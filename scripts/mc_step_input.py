@@ -129,22 +129,22 @@ class Controller:
     # Update setpoint message
     def updateSp(self, step_type, step_val):
         # Set default values
-        self.pos_sp.position.x = 0#self.local_pos.x
-        self.pos_sp.position.y = 0#self.local_pos.y
-        self.pos_sp.position.z = 0#self.local_pos.z
+        self.pos_sp.position.x = self.local_pos.x
+        self.pos_sp.position.y = self.local_pos.y
+        self.pos_sp.position.z = self.local_pos.z
 
-        self.pos_sp.velocity.x = 0#self.local_vel.x
-        self.pos_sp.velocity.y = 0#self.local_vel.y
-        self.pos_sp.velocity.z = 0#self.local_vel.z
+        self.pos_sp.velocity.x = self.local_vel.x
+        self.pos_sp.velocity.y = self.local_vel.y
+        self.pos_sp.velocity.z = self.local_vel.z
 
-        self.att_sp.orientation.w = 1#self.quat.w
-        self.att_sp.orientation.x = 0#self.quat.x
-        self.att_sp.orientation.y = 0#self.quat.y
-        self.att_sp.orientation.z = 0#self.quat.z
+        self.att_sp.orientation.w = self.quat.w
+        self.att_sp.orientation.x = self.quat.x
+        self.att_sp.orientation.y = self.quat.y
+        self.att_sp.orientation.z = self.quat.z
 
-        self.att_sp.body_rate.x = 0#self.ang_rate.x
-        self.att_sp.body_rate.y = 0#self.ang_rate.y
-        self.att_sp.body_rate.z = 0#self.ang_rate.z
+        self.att_sp.body_rate.x = self.ang_rate.x
+        self.att_sp.body_rate.y = self.ang_rate.y
+        self.att_sp.body_rate.z = self.ang_rate.z
 
         self.att_sp.thrust = self.hoverThrust
 
