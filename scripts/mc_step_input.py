@@ -18,7 +18,7 @@ import argparse
 import time, sys, math
 
 # Constants
-ALL_STEP_TYPES = ["pitch_rate", "roll_rate", "yaw_rate", "pitch", "roll", "yaw", "vn", "ve", "vd", "x", "y", "z"]
+ALL_STEP_TYPES = ["pitch_rate", "roll_rate", "yaw_rate", "pitch", "roll", "yaw", "vn", "ve", "vd", "n", "e", "d"]
 INDEX_PITCH_RATE = 0
 INDEX_ROLL_RATE = 1
 INDEX_YAW_RATE = 2
@@ -28,11 +28,11 @@ INDEX_YAW = 5
 INDEX_VN = 6
 INDEX_VE = 7
 INDEX_VD = 8
-INDEX_X = 9
-INDEX_Y = 10
-INDEX_Z = 11
+INDEX_N = 9
+INDEX_E = 10
+INDEX_D = 11
 INDICES_ATTITUDE = [INDEX_PITCH_RATE, INDEX_ROLL_RATE, INDEX_YAW_RATE, INDEX_PITCH, INDEX_ROLL, INDEX_YAW]
-INDICES_POSITION = [INDEX_VN, INDEX_VE, INDEX_VD, INDEX_X, INDEX_Y, INDEX_Z]
+INDICES_POSITION = [INDEX_VN, INDEX_VE, INDEX_VD, INDEX_N, INDEX_E, INDEX_D]
 
 # Global variables
 
@@ -63,7 +63,7 @@ class FlightModes:
 class FlightParams:
     def __init__(self):
         # pull all parameters
-        rospy.wait_for_service('mavros/param/pull')
+        # rospy.wait_for_service('mavros/param/pull')
         pulled = False
         while not pulled:
             try:
@@ -131,20 +131,20 @@ class Controller:
         # Set default values
         self.pos_sp.position.x = 0#self.local_pos.x
         self.pos_sp.position.y = 0#self.local_pos.y
-        self.pos_sp.position.z = 0#self.local_pos.z
+        self.pos_sp.position.z = self.takeoffHeight#self.local_pos.z
 
-        self.pos_sp.velocity.x = 0#self.local_vel.x
-        self.pos_sp.velocity.y = 0#self.local_vel.y
-        self.pos_sp.velocity.z = 0#self.local_vel.z
+        self.pos_sp.velocity.x = self.local_vel.x
+        self.pos_sp.velocity.y = self.local_vel.y
+        self.pos_sp.velocity.z = self.local_vel.z
 
-        self.att_sp.orientation.w = 1#self.quat.w
-        self.att_sp.orientation.x = 0#self.quat.x
-        self.att_sp.orientation.y = 0#self.quat.y
-        self.att_sp.orientation.z = 0#self.quat.z
+        self.att_sp.orientation.w = self.quat.w
+        self.att_sp.orientation.x = self.quat.x
+        self.att_sp.orientation.y = self.quat.y
+        self.att_sp.orientation.z = self.quat.z
 
-        self.att_sp.body_rate.x = 0#self.ang_rate.x
-        self.att_sp.body_rate.y = 0#self.ang_rate.y
-        self.att_sp.body_rate.z = 0#self.ang_rate.z
+        self.att_sp.body_rate.x = self.ang_rate.x
+        self.att_sp.body_rate.y = self.ang_rate.y
+        self.att_sp.body_rate.z = self.ang_rate.z
 
         self.att_sp.thrust = self.hoverThrust
 
@@ -155,12 +155,12 @@ class Controller:
             self.pos_sp.velocity.x = step_val
         elif ALL_STEP_TYPES.index(step_type) == INDEX_VD:
             self.pos_sp.velocity.z = -step_val
-        elif ALL_STEP_TYPES.index(step_type) == INDEX_X:
-            self.pos_sp.position.x = step_val
-        elif ALL_STEP_TYPES.index(step_type) == INDEX_Y:
+        elif ALL_STEP_TYPES.index(step_type) == INDEX_N:
             self.pos_sp.position.y = step_val
-        elif ALL_STEP_TYPES.index(step_type) == INDEX_Z:
-            self.pos_sp.position.z = step_val
+        elif ALL_STEP_TYPES.index(step_type) == INDEX_E:
+            self.pos_sp.position.x = step_val
+        elif ALL_STEP_TYPES.index(step_type) == INDEX_D:
+            self.pos_sp.position.z = -step_val
         elif ALL_STEP_TYPES.index(step_type) == INDEX_ROLL_RATE:
             self.att_sp.body_rate.x = math.radians(step_val)
         elif ALL_STEP_TYPES.index(step_type) == INDEX_PITCH_RATE:
@@ -168,16 +168,16 @@ class Controller:
         elif ALL_STEP_TYPES.index(step_type) == INDEX_YAW_RATE:
             self.att_sp.body_rate.z = math.radians(step_val)
         elif ALL_STEP_TYPES.index(step_type) == INDEX_ROLL:
-            self.att_sp.orientation = Quaternion(*quaternion_from_euler(math.radians(step_val), 0.0, math.radians(self.init_yaw)))
+            self.att_sp.orientation = Quaternion(*quaternion_from_euler(math.radians(step_val), 0.0, math.radians(90 + self.init_yaw)))
         elif ALL_STEP_TYPES.index(step_type) == INDEX_PITCH:
-            self.att_sp.orientation = Quaternion(*quaternion_from_euler(0.0, math.radians(step_val), math.radians(self.init_yaw)))
+            self.att_sp.orientation = Quaternion(*quaternion_from_euler(0.0, math.radians(step_val), math.radians(90 + self.init_yaw)))
         elif ALL_STEP_TYPES.index(step_type) == INDEX_YAW:
             self.att_sp.orientation = Quaternion(*quaternion_from_euler(0.0, 0.0, math.radians(90 + step_val)))
 
         # Set mask
         if ALL_STEP_TYPES.index(step_type) in [INDEX_VN, INDEX_VE, INDEX_VD]:
             self.pos_sp.type_mask = int('110111000111', 2)
-        elif ALL_STEP_TYPES.index(step_type) in [INDEX_X, INDEX_Y, INDEX_Z]:
+        elif ALL_STEP_TYPES.index(step_type) in [INDEX_N, INDEX_E, INDEX_D]:
             self.pos_sp.type_mask = int('110111111000', 2) 
         elif ALL_STEP_TYPES.index(step_type) in [INDEX_PITCH_RATE, INDEX_ROLL_RATE, INDEX_YAW_RATE]:
             self.att_sp.type_mask = int('10111000', 2)
@@ -216,7 +216,7 @@ class Controller:
         self.ang_rate.z = msg.twist.angular.z
 
 def publish_setpoint(cnt, step_type, pub_pos, pub_att):
-    if ALL_STEP_TYPES.index(step_type) in [INDEX_VN, INDEX_VE, INDEX_VD, INDEX_X, INDEX_Y, INDEX_Z]:
+    if ALL_STEP_TYPES.index(step_type) in [INDEX_VN, INDEX_VE, INDEX_VD, INDEX_N, INDEX_E, INDEX_D]:
         pub_pos.publish(cnt.pos_sp)
     elif ALL_STEP_TYPES.index(step_type) in [INDEX_PITCH_RATE, INDEX_ROLL_RATE, INDEX_YAW_RATE, INDEX_PITCH, INDEX_ROLL, INDEX_YAW]:
         pub_att.publish(cnt.att_sp)
@@ -304,15 +304,15 @@ def run(argv):
     # Takeoff
     print("Taking off")
     while not (abs(cnt.local_pos.z - cnt.takeoffHeight) < 0.2 or rospy.is_shutdown()):
-        cnt.updateSp("z", cnt.takeoffHeight)
+        cnt.updateSp(ALL_STEP_TYPES[INDEX_D], -cnt.takeoffHeight)
         sp_pos_pub.publish(cnt.pos_sp)
         rate.sleep()
     print("Reached takeoff height")
 
     # Start and end the step at 0. Well, really close to 0...
     final_val = 1e-6
-    if ALL_STEP_TYPES.index(step_type) == INDEX_Z:
-        final_val = cnt.takeoffHeight
+    if ALL_STEP_TYPES.index(step_type) == INDEX_D:
+        final_val = -cnt.takeoffHeight
     elif ALL_STEP_TYPES.index(step_type) == INDEX_YAW:
         final_val = cnt.init_yaw
 
