@@ -129,9 +129,9 @@ class Controller:
     # Update setpoint message
     def updateSp(self, step_type, step_val):
         # Set default values
-        self.pos_sp.position.x = 0#self.local_pos.x
-        self.pos_sp.position.y = 0#self.local_pos.y
-        self.pos_sp.position.z = self.takeoffHeight#self.local_pos.z
+        self.pos_sp.position.x = self.local_pos.x
+        self.pos_sp.position.y = self.local_pos.y
+        self.pos_sp.position.z = self.local_pos.z
 
         self.pos_sp.velocity.x = self.local_vel.x
         self.pos_sp.velocity.y = self.local_vel.y
