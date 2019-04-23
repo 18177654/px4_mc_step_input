@@ -58,6 +58,14 @@ class FlightModes:
         except rospy.ServiceException, e:
             print "service set_mode call failed: %s. Offboard Mode could not be set."%e
 
+    def setLandMode(self):
+        rospy.wait_for_service('mavros/set_mode')
+        try:
+            flightModeService = rospy.ServiceProxy('mavros/set_mode', mavros_msgs.srv.SetMode)
+            flightModeService(custom_mode='AUTO.LAND')
+        except rospy.ServiceException, e:
+            print "service set_mode call failed: %s. Land Mode could not be set."%e
+
 # Flight parameters class
 # Flight parameters are activated using ROS services
 class FlightParams:
@@ -129,22 +137,23 @@ class Controller:
     # Update setpoint message
     def updateSp(self, step_type, step_val):
         # Set default values
-        self.pos_sp.position.x = self.local_pos.x
-        self.pos_sp.position.y = self.local_pos.y
-        self.pos_sp.position.z = self.local_pos.z
+        self.pos_sp.position.x = 0#self.local_pos.x
+        self.pos_sp.position.y = 0#self.local_pos.y
+        self.pos_sp.position.z = self.takeoffHeight#self.local_pos.z
 
-        self.pos_sp.velocity.x = self.local_vel.x
-        self.pos_sp.velocity.y = self.local_vel.y
-        self.pos_sp.velocity.z = self.local_vel.z
+        self.pos_sp.velocity.x = 0#self.local_vel.x
+        self.pos_sp.velocity.y = 0#self.local_vel.y
+        self.pos_sp.velocity.z = 0#self.local_vel.z
 
-        self.att_sp.orientation.w = self.quat.w
-        self.att_sp.orientation.x = self.quat.x
-        self.att_sp.orientation.y = self.quat.y
-        self.att_sp.orientation.z = self.quat.z
+        # self.att_sp.orientation.w = self.quat.w
+        # self.att_sp.orientation.x = self.quat.x
+        # self.att_sp.orientation.y = self.quat.y
+        # self.att_sp.orientation.z = self.quat.z
+        self.att_sp.orientation = Quaternion(*quaternion_from_euler(0.0, 0.0, math.radians(90 + self.init_yaw)))
 
-        self.att_sp.body_rate.x = self.ang_rate.x
-        self.att_sp.body_rate.y = self.ang_rate.y
-        self.att_sp.body_rate.z = self.ang_rate.z
+        self.att_sp.body_rate.x = 0#self.ang_rate.x
+        self.att_sp.body_rate.y = 0#self.ang_rate.y
+        self.att_sp.body_rate.z = 0#self.ang_rate.z
 
         self.att_sp.thrust = self.hoverThrust
 
@@ -333,6 +342,13 @@ def run(argv):
         cnt.updateSp(step_type, final_val)
         publish_setpoint(cnt, step_type, sp_pos_pub, sp_att_pub)
         rate.sleep()
+
+    # Land quadrotor
+    print("Activate LAND mode")
+    while not (cnt.state.mode == "AUTO.LAND" or rospy.is_shutdown()):
+        modes.setLandMode()
+        rate.sleep()
+    print("LAND mode activated\n")
 
 def main(argv):
     try:
