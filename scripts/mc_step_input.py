@@ -137,23 +137,19 @@ class Controller:
     # Update setpoint message
     def updateSp(self, step_type, step_val):
         # Set default values
-        self.pos_sp.position.x = 0#self.local_pos.x
-        self.pos_sp.position.y = 0#self.local_pos.y
-        self.pos_sp.position.z = self.takeoffHeight#self.local_pos.z
+        self.pos_sp.position.x = 0
+        self.pos_sp.position.y = 0
+        self.pos_sp.position.z = self.takeoffHeight
 
-        self.pos_sp.velocity.x = 0#self.local_vel.x
-        self.pos_sp.velocity.y = 0#self.local_vel.y
-        self.pos_sp.velocity.z = 0#self.local_vel.z
+        self.pos_sp.velocity.x = 0
+        self.pos_sp.velocity.y = 0
+        self.pos_sp.velocity.z = 0
 
-        # self.att_sp.orientation.w = self.quat.w
-        # self.att_sp.orientation.x = self.quat.x
-        # self.att_sp.orientation.y = self.quat.y
-        # self.att_sp.orientation.z = self.quat.z
         self.att_sp.orientation = Quaternion(*quaternion_from_euler(0.0, 0.0, math.radians(90 + self.init_yaw)))
 
-        self.att_sp.body_rate.x = 0#self.ang_rate.x
-        self.att_sp.body_rate.y = 0#self.ang_rate.y
-        self.att_sp.body_rate.z = 0#self.ang_rate.z
+        self.att_sp.body_rate.x = 0
+        self.att_sp.body_rate.y = 0
+        self.att_sp.body_rate.z = 0
 
         self.att_sp.thrust = self.hoverThrust
 
@@ -302,13 +298,6 @@ def run(argv):
         modes.setOffboardMode()
         rate.sleep()
     print("OFFBOARD mode activated\n")
-
-    # Make sure the drone is armed
-    print("Arming")
-    while not (cnt.state.armed or rospy.is_shutdown()):
-        modes.setArm()
-        rate.sleep()
-    print("Armed\n")
 
     # Takeoff
     print("Taking off")
