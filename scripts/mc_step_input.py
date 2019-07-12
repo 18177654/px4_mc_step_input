@@ -315,7 +315,7 @@ def run(argv):
         final_val = cnt.init_yaw
 
     # ROS main loop - first set value to zero before stepping
-    zero_time = 0.5 * duration
+    zero_time = 5
     start = time.time()
     while not ((time.time() - start >= duration + zero_time) or rospy.is_shutdown()):
         if time.time() - start <= zero_time:
